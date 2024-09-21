@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Three.js Scene</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      canvas {
+        position: fixed;
+        display: block;
+      }
+
+      .test {
+        height: 200vh;
+        background: dodgerblue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      // Здесь ваш JavaScript код
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.prepend(renderer.domElement);
+
+      const geometry = new THREE.SphereGeometry(5, 32, 32);
+      const material = new THREE.MeshBasicMaterial({
+        vertexColors: THREE.VertexColors,
+        wireframe: true,
+      });
+
+      // Создаем массив цветов вершин
+      const colors = [];
+      for (let i = 0; i < geometry.attributes.position.count; i++) {
+        // Получаем высоту вершины
+        const y = geometry.attributes.position.getY(i);
+        // Вычисляем цвет в зависимости от высоты
+        const color = new THREE.Color(
+          (y + 5) / 10, // Красный канал
+          0.5, // Зеленый канал
+          0.5 // Синий канал
+        );
+        colors.push(color);
+      }
+
+      // Устанавливаем цвета вершин
+      geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors.length * 3), 3).copyColorsArray(colors));
+
+      const sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+
+      camera.position.z = 10;
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        sphere.rotation.x += 0.01;
+        sphere.rotation.y += 0.01;
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener("scroll", () => {
+        const scrollY = window.scrollY;
+        const waveAmplitude = scrollY * 0.01;
+        const positions = geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+          positions[i + 2] = waveAmplitude * Math.sin(positions[i] * 2);
+        }
+        geometry.attributes.position.needsUpdate = true;
+      });
+    </script>
+  </body>
+</html>
